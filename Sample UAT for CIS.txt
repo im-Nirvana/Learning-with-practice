@@ -1,0 +1,135 @@
+
+### creating spark dataframe
+
+## For SAS dataset  ##Need to install Maven package : saurfang:spark-sas7bdat:3.0.0-s_2.12
+
+df = spark.read.format("com.github.saurfang.sas.spark").load("dbfs:/mnt/cis2-loyalty-data/Nihal_test/item_202218_30apr2022.sas7bdat")
+
+df8 = spark.read.options(delimiter='|').csv("dbfs:/mnt/cis2-loyalty-data/alfamart/data/input/wk202217/itm_ALF_1AZ1_20220503210020_03-04-2022_01-05-2022.csv.gz",inferSchema = True, header = True)
+
+
+
+
+df8.printSchema()
+
+###Output
+
+root
+ |-- NO_STRUK: string (nullable = true)
+ |-- PLU: integer (nullable = true)
+ |-- TOKO: string (nullable = true)
+ |-- MEMBER: long (nullable = true)
+ |-- JAM_TRX: long (nullable = true)
+ |-- BAR_CODE: long (nullable = true)
+ |-- QTY: integer (nullable = true)
+ |-- NET: double (nullable = true)
+ |-- PRICE: integer (nullable = true)
+ |-- MARGIN: string (nullable = true)
+ |-- TRX_TYPE: string (nullable = true)
+
+df8.describe()
+
+
+###Output
+
+Out[83]: DataFrame[summary: string, NO_STRUK: string, PLU: string, TOKO: string, MEMBER: string, JAM_TRX: string, BAR_CODE: string, QTY: string, NET: string, PRICE: string, MARGIN: string, TRX_TYPE: string]
+
+
+df8.agg({'QTY': 'sum'}).show() ##4881145 -- in putty
+
+###Output
+
++--------+
+|sum(QTY)|
++--------+
+| 4881145|
++--------+
+
+
+df8.groupBy('TRX_TYPE').sum('PRICE').show()
+
+
+###Output
+
++--------+-----------+
+|TRX_TYPE| sum(PRICE)|
++--------+-----------+
+|       R|34686507890|
++--------+-----------+
+
+
+
+##########SAS Dataset###################SAS Dataset #################SAS Dataset###################SAS Dataset#################SAS Dataset###
+##########SAS Dataset###################SAS Dataset #################SAS Dataset###################SAS Dataset#################SAS Dataset###
+##########SAS Dataset###################SAS Dataset #################SAS Dataset###################SAS Dataset#################SAS Dataset###
+##########SAS Dataset###################SAS Dataset #################SAS Dataset###################SAS Dataset#################SAS Dataset###
+
+## Creating dataframe
+import pandas as pd
+import numpy as np
+df = pd.read_sas("/dbfs/mnt/cis2-loyalty-data/Nihal_test/item_202218_30apr2022.sas7bdat")
+
+
+##Print first 5 rows
+df.head(5)
+
+
+## Will give gist of overall dataset
+df.describe()
+
+
+##Gives info about datatype
+df.info()
+
+
+##Summation
+df['QUANTITY'].sum()
+
+
+##No of rows and Columns
+df.shape
+
+
+## Get sum of multiple columns
+print (df[['a','b']].sum())
+
+
+
+
+
+##Creating a spark dataframe
+df3 = spark.read.options(delimiter='|').csv("dbfs:/mnt/cis2-loyalty-data/alfamart/data/input/wk202217/itm_ALF_1AZ1_20220503210020_03-04-2022_01-05-2022.csv.gz",inferSchema = True, header = True)
+
+
+df3.describe()  ##To get all columns name along with datatype
+
+df3.show(5)   ## to print first 5 values
+
+
+df4.printSchema()  ## to get schematic of table/dataset
+
+
+##Type casting
+from pyspark.sql.types import *
+df4= df3.withColumn("PRICE", df3["PRICE"].cast(FloatType()))  ##Type casting
+
+###Summation
+df4.agg({'PRICE': 'sum'}).show()  ##3.46865e+10   ###Summation
+
+##Type casting
+spark.sql("SELECT INT('PRICE') from df3")   ##Type casting
+
+###Summation
+df3.agg({'PRICE': 'sum'}).show()    ###Summation
+
+
+## Get sum of multiple columns in oandas
+print (df[['a','b']].sum())
+
+
+
+
+
+#### Code to remove 'b from parquet files 
+for col in df:
+    df[col] = df[col].apply(lambda x: x.decode() if isinstance(x, bytes) else x)
